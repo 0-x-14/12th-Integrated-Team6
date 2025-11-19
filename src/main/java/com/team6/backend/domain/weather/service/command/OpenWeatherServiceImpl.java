@@ -5,6 +5,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.team6.backend.common.exception.AppException;
 import com.team6.backend.common.exception.ErrorCode;
 import com.team6.backend.domain.weather.dto.res.OpenWeatherResponse;
+import com.team6.backend.domain.weather.exception.WeatherException;
+import com.team6.backend.domain.weather.exception.code.WeatherErrorCode;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -25,7 +27,7 @@ public class OpenWeatherServiceImpl implements OpenWeatherService {
     @Override
     public OpenWeatherResponse.WeatherDTO getWeather(double lat, double lon){
         if (lat < -90.0 || lat > 90.0 || lon < -180.0 || lon > 180.0) {
-            throw new AppException(ErrorCode.BAD_REQUEST);
+            throw new WeatherException(WeatherErrorCode.INVALID_LAN_LON);
         }
 
         String url = UriComponentsBuilder.fromHttpUrl(baseUrl)
@@ -56,7 +58,7 @@ public class OpenWeatherServiceImpl implements OpenWeatherService {
                     .build();
         }
         catch (Exception e){
-            throw new AppException(ErrorCode.NOT_FOUND);
+            throw new AppException(WeatherErrorCode.WEATHER_FETCH_FAILED);
         }
     }
 }
