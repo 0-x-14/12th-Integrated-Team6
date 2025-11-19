@@ -15,11 +15,11 @@ public class WeatherController {
     private final OpenWeatherService accuWeatherService;
 
     @GetMapping("/weather")
-    public ResponseEntity<DataResponse<OpenWeatherResponse.WeatherDTO>> getWeather(
+    public ResponseEntity<DataResponse<OpenWeatherResponse.CurrentWeatherDTO>> getCurrentWeather(
             @RequestParam double lat,
             @RequestParam double lon
     ){
-        OpenWeatherResponse.WeatherDTO response = accuWeatherService.getWeather(lat, lon);
+        OpenWeatherResponse.CurrentWeatherDTO response = accuWeatherService.getCurrentWeather(lat, lon);
 
         return ResponseEntity.ok(DataResponse.from(response));
     }

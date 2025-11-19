@@ -1,8 +1,8 @@
 package com.team6.backend.common.dto;
 
+import com.team6.backend.common.exception.BaseErrorCode;
 import org.springframework.http.HttpStatus;
 
-import com.team6.backend.common.exception.ErrorCode;
 
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.Getter;
@@ -23,7 +23,7 @@ public class ErrorResponse extends BaseResponse {
 		this.requestURI = requestURI;
 	}
 
-	public static ErrorResponse of(ErrorCode errorCode, HttpServletRequest request) {
+	public static ErrorResponse of(BaseErrorCode errorCode, HttpServletRequest request) {
 		return new ErrorResponse(
 			errorCode.getCode(),
 			errorCode.getMessage(),
