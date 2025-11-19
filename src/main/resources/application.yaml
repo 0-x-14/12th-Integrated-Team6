@@ -20,3 +20,7 @@ spring:
 openWeather:
   api:
     key: ${OPENWEATHER_API_KEY}
+
+weatherApi:
+  api:
+    key: ${WEATHER_API_KEY}
