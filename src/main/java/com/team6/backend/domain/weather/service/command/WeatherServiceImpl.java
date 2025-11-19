@@ -14,10 +14,12 @@ import org.springframework.web.util.UriComponentsBuilder;
 import java.time.Instant;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
-public class OpenWeatherServiceImpl implements OpenWeatherService {
+public class WeatherServiceImpl implements WeatherService {
 
     @Value("${openWeather.api.key}")
     private String openWeatherApiKey;
@@ -76,7 +78,7 @@ public class OpenWeatherServiceImpl implements OpenWeatherService {
         // 자외선 api
         String uvUrl = UriComponentsBuilder.fromHttpUrl("https://api.weatherapi.com/v1/current.json")
                 .queryParam("key", weatherApiKey)
-                .queryParam("q", lat + ", " + "lon")
+                .queryParam("q", lat + "," + "lon")
                 .toUriString();
         JsonNode uvRoot;
         try {
@@ -118,6 +120,67 @@ public class OpenWeatherServiceImpl implements OpenWeatherService {
                 .pm25(convertPm25ToGrade(pm25))
                 .uv(convertUvToGrade(uv))
                 .build();
+    }
+
+    @Override
+    public OpenWeatherResponse.HourWeatherDTO getHourlyWeather(double lat, double lon) {
+        // 잘못된 위도 경도 처리
+        if (lat < -90.0 || lat > 90.0 || lon < -180.0 || lon > 180.0) {
+            throw new WeatherException(WeatherErrorCode.INVALID_LAN_LON);
+        }
+
+        String url = UriComponentsBuilder.fromHttpUrl("http://api.weatherapi.com/v1/forecast.json")
+                .queryParam("q", lat + "," + lon)
+                .queryParam("days", 2)
+                .queryParam("lang", "ko")
+                .queryParam("key", weatherApiKey)
+                .toUriString();
+
+        try{
+            String response = restTemplate.getForObject(url, String.class);
+            JsonNode root = objectMapper.readTree(response);
+
+            String city = root.path("location").path("name").asText();
+            long current = System.currentTimeMillis() / 1000;
+
+            List<OpenWeatherResponse.HourList> hourList = new ArrayList<>();
+
+            JsonNode forecastDay = root.path("forecast").path("forecastday");
+
+            int count = 0;
+
+            for(JsonNode day : forecastDay) {
+                JsonNode hours = day.path("hour");
+                for(JsonNode hour : hours){
+                    long time = hour.path("time_epoch").asLong();
+
+                    if(time > current){
+                        String fullTime = hour.path("time").asText();
+                        String shortTime = fullTime.substring(11, 16);
+
+                        double temperature = hour.path("temp_c").asDouble();
+                        String description = hour.path("condition").path("text").asText();
+
+                        hourList.add(OpenWeatherResponse.HourList.builder()
+                                .time(shortTime)
+                                .description(description)
+                                .temperature(temperature)
+                                .build());
+
+                        count++;
+                    }
+                    if (count >= 24) break;
+                }
+                if (count >= 24) break;
+            }
+            return OpenWeatherResponse.HourWeatherDTO.builder()
+                    .city(city)
+                    .weatherList(hourList)
+                    .build();
+        }
+        catch (Exception e){
+            throw new WeatherException(WeatherErrorCode.WEATHER_FETCH_FAILED);
+        }
     }
 
     // 1. 풍향 변환기 (각도 -> 8방위 한글)

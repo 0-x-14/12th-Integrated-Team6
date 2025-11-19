@@ -3,6 +3,8 @@ package com.team6.backend.domain.weather.dto.res;
 import lombok.Builder;
 import lombok.Getter;
 
+import java.util.List;
+
 public class OpenWeatherResponse {
 
     @Getter
@@ -21,5 +23,20 @@ public class OpenWeatherResponse {
         private String pm25; // 초미세먼지
 
         private String uv; // 자외선
+    }
+
+    @Getter
+    @Builder
+    public static class HourWeatherDTO{
+        private String city;
+        private List<HourList> weatherList;
+    }
+
+    @Getter
+    @Builder
+    public static class HourList{
+        private String time;
+        private double temperature;
+        private String description;
     }
 }
