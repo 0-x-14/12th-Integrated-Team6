@@ -5,7 +5,7 @@ import lombok.Getter;
 
 import java.util.List;
 
-public class OpenWeatherResponse {
+public class WeatherResponse {
 
     @Getter
     @Builder
@@ -38,5 +38,33 @@ public class OpenWeatherResponse {
         private String time;
         private double temperature;
         private String description;
+    }
+
+
+    @Getter
+    @Builder
+    public static class WeeklyForecastDTO {
+        private String city;
+        private List<DailyWeather> dailyList;
+    }
+
+    @Getter
+    @Builder
+    public static class DailyWeather {
+        private String date;
+        private String dayOfWeek;
+
+        private double minTemp;
+        private double maxTemp;
+
+        private AmPm am;
+        private AmPm pm;
+    }
+
+    @Getter
+    @Builder
+    public static class AmPm {
+        private String description;
+        private int rain;
     }
 }

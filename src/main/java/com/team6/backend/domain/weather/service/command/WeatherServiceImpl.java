@@ -2,9 +2,10 @@ package com.team6.backend.domain.weather.service.command;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.team6.backend.domain.weather.dto.res.OpenWeatherResponse;
+import com.team6.backend.domain.weather.dto.res.WeatherResponse;
 import com.team6.backend.domain.weather.exception.WeatherException;
 import com.team6.backend.domain.weather.exception.code.WeatherErrorCode;
+import io.swagger.v3.core.util.Json;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -12,10 +13,11 @@ import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 
 import java.time.Instant;
+import java.time.LocalDate;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.List;
+import java.time.format.TextStyle;
+import java.util.*;
 
 @Service
 @RequiredArgsConstructor
@@ -31,7 +33,7 @@ public class WeatherServiceImpl implements WeatherService {
 
 
     @Override
-    public OpenWeatherResponse.CurrentWeatherDTO getCurrentWeather(double lat, double lon){
+    public WeatherResponse.CurrentWeatherDTO getCurrentWeather(double lat, double lon){
         // 잘못된 위도 경도 처리
         if (lat < -90.0 || lat > 90.0 || lon < -180.0 || lon > 180.0) {
             throw new WeatherException(WeatherErrorCode.INVALID_LAN_LON);
@@ -78,7 +80,7 @@ public class WeatherServiceImpl implements WeatherService {
         // 자외선 api
         String uvUrl = UriComponentsBuilder.fromHttpUrl("https://api.weatherapi.com/v1/current.json")
                 .queryParam("key", weatherApiKey)
-                .queryParam("q", lat + "," + "lon")
+                .queryParam("q", lat + "," + lon)
                 .toUriString();
         JsonNode uvRoot;
         try {
@@ -107,7 +109,7 @@ public class WeatherServiceImpl implements WeatherService {
         //자외선 정보
         double uv = uvRoot.path("current").path("uv").asDouble();
 
-        return OpenWeatherResponse.CurrentWeatherDTO.builder()
+        return WeatherResponse.CurrentWeatherDTO.builder()
                 .city(city)
                 .temperature(temperature)
                 .description(description)
@@ -123,7 +125,7 @@ public class WeatherServiceImpl implements WeatherService {
     }
 
     @Override
-    public OpenWeatherResponse.HourWeatherDTO getHourlyWeather(double lat, double lon) {
+    public WeatherResponse.HourWeatherDTO getHourlyWeather(double lat, double lon) {
         // 잘못된 위도 경도 처리
         if (lat < -90.0 || lat > 90.0 || lon < -180.0 || lon > 180.0) {
             throw new WeatherException(WeatherErrorCode.INVALID_LAN_LON);
@@ -143,7 +145,7 @@ public class WeatherServiceImpl implements WeatherService {
             String city = root.path("location").path("name").asText();
             long current = System.currentTimeMillis() / 1000;
 
-            List<OpenWeatherResponse.HourList> hourList = new ArrayList<>();
+            List<WeatherResponse.HourList> hourList = new ArrayList<>();
 
             JsonNode forecastDay = root.path("forecast").path("forecastday");
 
@@ -161,7 +163,7 @@ public class WeatherServiceImpl implements WeatherService {
                         double temperature = hour.path("temp_c").asDouble();
                         String description = hour.path("condition").path("text").asText();
 
-                        hourList.add(OpenWeatherResponse.HourList.builder()
+                        hourList.add(WeatherResponse.HourList.builder()
                                 .time(shortTime)
                                 .description(description)
                                 .temperature(temperature)
@@ -173,10 +175,95 @@ public class WeatherServiceImpl implements WeatherService {
                 }
                 if (count >= 24) break;
             }
-            return OpenWeatherResponse.HourWeatherDTO.builder()
+            return WeatherResponse.HourWeatherDTO.builder()
                     .city(city)
                     .weatherList(hourList)
                     .build();
+        }
+        catch (Exception e){
+            throw new WeatherException(WeatherErrorCode.WEATHER_FETCH_FAILED);
+        }
+    }
+
+    @Override
+    public WeatherResponse.WeeklyForecastDTO getWeeklyWeather(double lat, double lon) {
+        // 잘못된 위도 경도 처리
+        if (lat < -90.0 || lat > 90.0 || lon < -180.0 || lon > 180.0) {
+            throw new WeatherException(WeatherErrorCode.INVALID_LAN_LON);
+        }
+
+        String url = UriComponentsBuilder.fromHttpUrl("https://api.openweathermap.org/data/2.5/forecast")
+                .queryParam("lat", lat)
+                .queryParam("lon", lon)
+                .queryParam("units", "metric")
+                .queryParam("lang", "kr")
+                .queryParam("appid", openWeatherApiKey)
+                .toUriString();
+
+        try{
+            String response = restTemplate.getForObject(url, String.class);
+            JsonNode root = objectMapper.readTree(response);
+
+            String city = root.path("city").path("name").asText();
+            Map<String, List<JsonNode>> dailyMap = new LinkedHashMap<>();
+            JsonNode listNode = root.path("list");
+
+            for(JsonNode node : listNode){
+                String date = node.path("dt_txt").asText().substring(0, 10);
+                dailyMap.computeIfAbsent(date, k -> new ArrayList<>()).add(node);
+            }
+            List<WeatherResponse.DailyWeather> dailyList = new ArrayList<>();
+            for(String dateKey : dailyMap.keySet()){
+                List<JsonNode> dayDate = dailyMap.get(dateKey);
+                JsonNode am = dayDate.get(0);
+                JsonNode pm = dayDate.get(dayDate.size()-1);
+
+
+                double maxTemp = -100.0;
+                double minTemp = 100.0;
+
+                for(JsonNode node : dayDate) {
+
+                    double currentTemp = node.path("main").path("temp").asDouble();
+
+
+                    if (currentTemp > maxTemp) maxTemp = currentTemp;
+                    if (currentTemp < minTemp) minTemp = currentTemp;
+
+
+                    int hour = Integer.parseInt(node.path("dt_txt").asText().substring(11, 13));
+                    if (hour >= 6 && hour <= 11) am = node;
+                    if (hour >= 12 && hour <= 17) pm = node;
+                }
+
+                WeatherResponse.AmPm amPart = WeatherResponse.AmPm.builder()
+                        .description(am.path("weather").get(0).path("description").asText())
+                        .rain((int)(am.path("pop").asDouble()*100))
+                        .build();
+
+                WeatherResponse.AmPm pmPart = WeatherResponse.AmPm.builder()
+                        .description(pm.path("weather").get(0).path("description").asText())
+                        .rain((int)(pm.path("pop").asDouble()*100))
+                        .build();
+
+                dailyList.add(WeatherResponse.DailyWeather.builder()
+                        .date(convertToMonthDay(dateKey))
+                        .dayOfWeek(convertToDayOfWeek(dateKey))
+                        .minTemp(minTemp)
+                        .maxTemp(maxTemp)
+                        .am(amPart)
+                        .pm(pmPart)
+                        .build());
+
+
+            }
+
+            return WeatherResponse.WeeklyForecastDTO.builder()
+                    .city(city)
+                    .dailyList(dailyList)
+                    .build();
+
+
         }
         catch (Exception e){
             throw new WeatherException(WeatherErrorCode.WEATHER_FETCH_FAILED);
@@ -225,5 +312,18 @@ public class WeatherServiceImpl implements WeatherService {
         if (uv < 8.0) return "높음";
         if (uv < 11.0) return "매우높음";
         return "위험";
+    }
+
+    // "2025-11-20" -> "11.20"
+    private String convertToMonthDay(String rawDate) {
+        LocalDate date = LocalDate.parse(rawDate);
+        return date.getMonthValue() + "." + date.getDayOfMonth();
+    }
+
+    // "2025-11-20" -> "수"
+    private String convertToDayOfWeek(String rawDate) {
+        LocalDate date = LocalDate.parse(rawDate);
+        if (date.equals(LocalDate.now())) return "오늘";
+        return date.getDayOfWeek().getDisplayName(TextStyle.SHORT, Locale.KOREAN);
     }
 }
