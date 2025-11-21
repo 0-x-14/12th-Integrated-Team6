@@ -1,0 +1,30 @@
+version: '3'
+
+services:
+  application:
+    container_name: networking2
+    image: ccjngwn/networking2:latest
+#    build:
+#      context: ./
+#      dockerfile: Dockerfile
+    ports:
+      - "8080:8080"
+    restart: on-failure
+    environment:
+      DB_URL: ${DB_URL}
+      DB_USERNAME: ${DB_USERNAME}
+      DB_PASSWORD: ${DB_PASSWORD}
+    networks:
+      - preon_net
+  nginx:
+    container_name: nginx
+    image: ccjngwn/nginx
+    ports:
+      - 80:80
+    depends_on:
+      - application
+    networks:
+      - preon_net
+
+networks:
+  preon_net: {}
