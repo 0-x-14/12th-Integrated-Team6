@@ -37,6 +37,6 @@ public class Location {
 	@Column(nullable = false)
 	private Double lng;
 
-	@OneToMany(mappedBy = "userLocation", cascade = CascadeType.ALL, orphanRemoval = true)
+	@OneToMany(mappedBy = "location", cascade = CascadeType.ALL, orphanRemoval = true)
 	private List<UserLocation> userLocations = new ArrayList<>();
 }

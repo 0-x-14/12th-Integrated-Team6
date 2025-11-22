@@ -36,5 +36,6 @@ public class UserLocation {
 	private Location location;
 
 	@Column(nullable = false, columnDefinition = "BOOLEAN DEFAULT false")
-	private Boolean pinned;
+	@Builder.Default
+	private Boolean pinned = false;
 }

@@ -29,6 +29,6 @@ public class User {
 
 	private String email;
 
-	@OneToMany(mappedBy = "userLocation", cascade = CascadeType.ALL, orphanRemoval = true)
+	@OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
 	private List<UserLocation> userLocations = new ArrayList<>();
 }
