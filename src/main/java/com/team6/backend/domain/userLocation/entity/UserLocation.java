@@ -16,6 +16,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 @Entity
 @Getter
@@ -37,5 +38,6 @@ public class UserLocation {
 
 	@Column(nullable = false, columnDefinition = "BOOLEAN DEFAULT false")
 	@Builder.Default
+	@Setter
 	private Boolean pinned = false;
 }

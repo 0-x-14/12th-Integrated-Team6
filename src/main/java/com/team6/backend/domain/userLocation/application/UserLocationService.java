@@ -11,6 +11,7 @@ import com.team6.backend.domain.location.entity.Location;
 import com.team6.backend.domain.user.dao.UserRepository;
 import com.team6.backend.domain.user.entity.User;
 import com.team6.backend.domain.userLocation.dao.UserLocationRepository;
+import com.team6.backend.domain.userLocation.dto.response.LocationPinResponseDTO;
 import com.team6.backend.domain.userLocation.entity.UserLocation;
 
 import lombok.AccessLevel;
@@ -47,5 +48,24 @@ public class UserLocationService {
 		);
 
 		return userLocation.getUserLocationId();
+	}
+
+	@Transactional
+	public LocationPinResponseDTO pinLocation(Long userId, Long locationId) {
+		User user = userRepository.findByUserId(userId)
+			.orElseThrow(() -> new NoSuchElementException("user를 찾을 수 없습니다."));
+
+		Location location = locationRepository.findByLocationId(locationId)
+			.orElseThrow(() -> new NoSuchElementException("location을 찾을 수 없습니다."));
+
+		UserLocation userLocation = userLocationRepository.findByUserAndLocation(user, location)
+			.orElseThrow(() -> new NoSuchElementException("userLocation을 찾을 수 없습니다."));
+
+		Boolean pinned = userLocation.getPinned();
+
+		// 이미 고정된 장소라면 고정 해제, 고정되지 않은 장소라면 고정함
+		userLocation.setPinned(!pinned);
+
+		return new LocationPinResponseDTO(location.getLocationId(), userLocation.getPinned());
 	}
 }
