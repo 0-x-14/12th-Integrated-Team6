@@ -1,7 +1,10 @@
 package com.team6.backend.api.controller;
 
+import java.util.List;
+
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -12,6 +15,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.team6.backend.api.dto.request.SaveLocationRequestDTO;
 import com.team6.backend.api.dto.response.DefaultIdResponse;
+import com.team6.backend.api.dto.response.UserLocationResponseDTO;
 import com.team6.backend.common.dto.DataResponse;
 import com.team6.backend.domain.userLocation.application.UserLocationService;
 import com.team6.backend.domain.userLocation.dto.response.LocationPinResponseDTO;
@@ -61,6 +65,18 @@ public class UserLocationController {
 		userLocationService.deleteLocation(userId, locationId);
 		return ResponseEntity.ok(
 			DataResponse.ok()
+		);
+	}
+
+	@Operation(summary = "장소 리스트 조회 API")
+	@GetMapping
+	public ResponseEntity<DataResponse<List<UserLocationResponseDTO>>> getLocation(
+		@RequestParam Long userId
+	) {
+		return ResponseEntity.ok(
+			DataResponse.from(
+				userLocationService.getLocation(userId)
+			)
 		);
 	}
 }

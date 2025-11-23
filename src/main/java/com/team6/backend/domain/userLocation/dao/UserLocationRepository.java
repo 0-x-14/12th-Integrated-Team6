@@ -1,5 +1,6 @@
 package com.team6.backend.domain.userLocation.dao;
 
+import java.util.List;
 import java.util.Optional;
 
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -12,4 +13,6 @@ import com.team6.backend.domain.userLocation.entity.UserLocation;
 @Repository
 public interface UserLocationRepository extends JpaRepository<UserLocation, Long> {
 	Optional<UserLocation> findByUserAndLocation(User user, Location location);
+
+	List<UserLocation> findByUserOrderByPinnedDesc(User user);
 }

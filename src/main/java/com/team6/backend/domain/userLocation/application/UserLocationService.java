@@ -1,11 +1,13 @@
 package com.team6.backend.domain.userLocation.application;
 
+import java.util.List;
 import java.util.NoSuchElementException;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.team6.backend.api.dto.request.SaveLocationRequestDTO;
+import com.team6.backend.api.dto.response.UserLocationResponseDTO;
 import com.team6.backend.domain.location.dao.LocationRepository;
 import com.team6.backend.domain.location.entity.Location;
 import com.team6.backend.domain.user.dao.UserRepository;
@@ -81,5 +83,21 @@ public class UserLocationService {
 			.orElseThrow(() -> new NoSuchElementException("userLocation을 찾을 수 없습니다."));
 
 		userLocationRepository.delete(userLocation);
+	}
+
+	@Transactional(readOnly = true)
+	public List<UserLocationResponseDTO> getLocation(Long userId) {
+		User user = userRepository.findByUserId(userId)
+			.orElseThrow(() -> new NoSuchElementException("user를 찾을 수 없습니다."));
+
+		List<UserLocation> userLocations = userLocationRepository.findByUserOrderByPinnedDesc(user);
+
+		return userLocations.stream()
+			.map(ul -> new UserLocationResponseDTO(
+				ul.getLocation().getLocationId(),
+				ul.getLocation().getName(),
+				ul.getPinned()
+			))
+			.toList();
 	}
 }
