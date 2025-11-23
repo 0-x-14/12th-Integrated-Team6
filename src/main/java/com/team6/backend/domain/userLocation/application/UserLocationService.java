@@ -68,4 +68,18 @@ public class UserLocationService {
 
 		return new LocationPinResponseDTO(location.getLocationId(), userLocation.getPinned());
 	}
+
+	@Transactional
+	public void deleteLocation(Long userId, Long locationId) {
+		User user = userRepository.findByUserId(userId)
+			.orElseThrow(() -> new NoSuchElementException("user를 찾을 수 없습니다."));
+
+		Location location = locationRepository.findByLocationId(locationId)
+			.orElseThrow(() -> new NoSuchElementException("location을 찾을 수 없습니다."));
+
+		UserLocation userLocation = userLocationRepository.findByUserAndLocation(user, location)
+			.orElseThrow(() -> new NoSuchElementException("userLocation을 찾을 수 없습니다."));
+
+		userLocationRepository.delete(userLocation);
+	}
 }

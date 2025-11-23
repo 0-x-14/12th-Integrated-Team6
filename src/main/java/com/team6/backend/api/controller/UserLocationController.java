@@ -1,6 +1,7 @@
 package com.team6.backend.api.controller;
 
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -48,6 +49,18 @@ public class UserLocationController {
 			DataResponse.from(
 				userLocationService.pinLocation(userId, locationId)
 			)
+		);
+	}
+
+	@Operation(summary = "장소 삭제 API")
+	@DeleteMapping("/{locationId}")
+	public ResponseEntity<DataResponse<Void>> deleteLocation(
+		@RequestParam Long userId,
+		@PathVariable Long locationId
+	) {
+		userLocationService.deleteLocation(userId, locationId);
+		return ResponseEntity.ok(
+			DataResponse.ok()
 		);
 	}
 }
