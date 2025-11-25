@@ -33,9 +33,9 @@ public class UserLocationController {
 	@Operation(summary = "장소 저장 API")
 	@PostMapping("/save")
 	public ResponseEntity<DataResponse<DefaultIdResponse>> saveLocation(
-		@RequestParam Long userId, // 로그인 구현 전이므로 임시로 userId 입력받아서 처리
 		@RequestBody SaveLocationRequestDTO saveLocationRequestDTO
 	) {
+		Long userId = 1L; // 임시 유저 ID
 		return ResponseEntity.ok(
 			DataResponse.created(
 				DefaultIdResponse.of(userLocationService.saveLocation(userId, saveLocationRequestDTO))
@@ -46,9 +46,9 @@ public class UserLocationController {
 	@Operation(summary = "장소 고정/고정 해제 API")
 	@PatchMapping("/{locationId}/pin")
 	public ResponseEntity<DataResponse<LocationPinResponseDTO>> pinLocation(
-		@RequestParam Long userId,
 		@PathVariable Long locationId
 	) {
+		Long userId = 1L; // 임시 유저 ID
 		return ResponseEntity.ok(
 			DataResponse.from(
 				userLocationService.pinLocation(userId, locationId)
@@ -59,9 +59,9 @@ public class UserLocationController {
 	@Operation(summary = "장소 삭제 API")
 	@DeleteMapping("/{locationId}")
 	public ResponseEntity<DataResponse<Void>> deleteLocation(
-		@RequestParam Long userId,
 		@PathVariable Long locationId
 	) {
+		Long userId = 1L; // 임시 유저 ID
 		userLocationService.deleteLocation(userId, locationId);
 		return ResponseEntity.ok(
 			DataResponse.ok()
@@ -71,8 +71,9 @@ public class UserLocationController {
 	@Operation(summary = "장소 리스트 조회 API")
 	@GetMapping
 	public ResponseEntity<DataResponse<List<UserLocationResponseDTO>>> getLocation(
-		@RequestParam Long userId
+
 	) {
+		Long userId = 1L; // 임시 유저 ID
 		return ResponseEntity.ok(
 			DataResponse.from(
 				userLocationService.getLocation(userId)

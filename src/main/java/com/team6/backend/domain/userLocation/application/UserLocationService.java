@@ -96,6 +96,8 @@ public class UserLocationService {
 			.map(ul -> new UserLocationResponseDTO(
 				ul.getLocation().getLocationId(),
 				ul.getLocation().getName(),
+				ul.getLocation().getLat(),
+				ul.getLocation().getLng(),
 				ul.getPinned()
 			))
 			.toList();
