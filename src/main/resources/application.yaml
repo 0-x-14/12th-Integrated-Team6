@@ -17,6 +17,15 @@ spring:
         format_sql: true
     database-platform: org.hibernate.dialect.MySQL8Dialect
 
+kakao:
+    auth:
+      client: ${CLIENT_ID}
+      redirect: ${REDIRECT_URI}
+      accessTokenURL: https://kauth.kakao.com/oauth/token
+      userInfoURL: https://kapi.kakao.com/v2/user/me
+jwt:
+    secret-key: ${JWT_SECRET_KEY}
+
 openWeather:
   api:
     key: ${OPENWEATHER_API_KEY}
@@ -24,3 +33,4 @@ openWeather:
 weatherApi:
   api:
     key: ${WEATHER_API_KEY}
+
