@@ -1,9 +1,0 @@
-package com.team6.backend.domain.user.dto;
-
-import lombok.Builder;
-
-@Builder
-public record UserInfo(
-	Long userId, String email
-) {
-}

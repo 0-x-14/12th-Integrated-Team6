@@ -10,6 +10,4 @@ import com.team6.backend.domain.user.entity.User;
 @Repository
 public interface UserRepository extends JpaRepository<User, Long> {
 	Optional<User> findByUserId(Long userId);
-
-	Optional<User> findByEmail(String email);
 }
