@@ -29,12 +29,6 @@ public class User {
 
 	private String email;
 
-	private String refreshToken;
-
 	@OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
 	private List<UserLocation> userLocations = new ArrayList<>();
-
-	public void updateRefreshToken(String refreshToken) {
-		this.refreshToken = refreshToken;
-	}
 }
