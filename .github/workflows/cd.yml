@@ -61,11 +61,14 @@ jobs:
         env:
           APP: "networking2"
           COMPOSE: "/home/compose/docker-compose.yml"
+          JWT_SECRET_KEY: ${{ secrets.JWT_SECRET_KEY }}
+          CLIENT_ID: ${{ secrets.CLIENT_ID }}
+          REDIRECT_URI: ${{ secrets.REDIRECT_URI }}
         with:
           username: ubuntu
           host: ${{ secrets.EC2_HOST }}
           key: ${{ secrets.EC2_PRIVATE_KEY }}
-          envs: APP, COMPOSE
+          envs: APP, COMPOSE, JWT_SECRET_KEY, CLIENT_ID, REDIRECT_URI
           script: |
             sudo docker-compose -f $COMPOSE down
             sudo docker pull ${{ secrets.DOCKER_USERNAME }}/networking2
