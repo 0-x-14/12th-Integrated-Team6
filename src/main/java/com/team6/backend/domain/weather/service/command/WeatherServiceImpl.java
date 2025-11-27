@@ -25,7 +25,7 @@ public class WeatherServiceImpl implements WeatherService {
 
     @Value("${openWeather.api.key}")
     private String openWeatherApiKey;
-    @Value("${weather.api.key}")
+    @Value("${weatherApi.api.key}")
     private String weatherApiKey;
     private final String baseUrl = "https://api.openweathermap.org/data/2.5/weather";
     private final RestTemplate restTemplate = new RestTemplate();
