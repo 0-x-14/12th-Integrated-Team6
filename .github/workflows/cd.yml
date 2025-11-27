@@ -45,6 +45,7 @@ jobs:
         run: |
           docker login -u ${{ secrets.DOCKER_USERNAME }} -p ${{ secrets.DOCKER_PASSWORD }}
           docker buildx build --platform linux/amd64 -t ${{ secrets.DOCKER_USERNAME }}/networking2 --push .
+          docker buildx build --platform linux/amd64 -t ${{ secrets.DOCKER_USERNAME }}/nginx --push ./nginx
 
       - name: Copy docker-compose.yml to EC2
         uses: appleboy/scp-action@master
@@ -72,4 +73,5 @@ jobs:
           script: |
             sudo docker-compose -f $COMPOSE down
             sudo docker pull ${{ secrets.DOCKER_USERNAME }}/networking2
+            sudo docker pull ${{ secrets.DOCKER_USERNAME }}/nginx
             sudo -E docker-compose -f $COMPOSE up -d
